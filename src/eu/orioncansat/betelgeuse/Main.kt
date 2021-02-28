@@ -2,8 +2,17 @@ package eu.orioncansat.betelgeuse
 
 import kotlin.system.exitProcess
 
+var _DataReader : DataReader? = null
+var _ShowGUI = false
+var _Gui : GUI? = null
+var _Train : Train? = null
+
 val ShowUpdate = fun (percentage: Int) {
     println("[${percentage}%]: Done")
+    if (_Gui != null)
+    {
+        _Gui!!.UpdateNewChart(_Train!!.GetBestValues().first, _Train!!.GetBestValues().second, _DataReader!!.GetTxPower())
+    }
 }
 
 class Main {
@@ -22,11 +31,16 @@ class Main {
                 exitProcess(1)
             }
 
-            val data = DataReader(fileName = argumentParseReturnValue.third)
-            val train = Train(data, 1, ShowUpdate)
-            train.Run()
+            _DataReader = DataReader(fileName = argumentParseReturnValue.third)
 
-            println("Best B:${train.GetBestValues().first} N:${train.GetBestValues().second} with R^2:${train.GetBestValues().third}")
+            _ShowGUI = argumentParseReturnValue.fifth
+            if (_ShowGUI)
+                _Gui = GUI(_DataReader!!);
+
+            _Train = Train(_DataReader!!, 1, ShowUpdate)
+            _Train!!.Run()
+
+            println("Best B:${_Train!!.GetBestValues().first} N:${_Train!!.GetBestValues().second} with R^2:${_Train!!.GetBestValues().third}")
         }
     }
 }
