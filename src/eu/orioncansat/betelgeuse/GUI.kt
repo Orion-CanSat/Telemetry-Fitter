@@ -10,8 +10,10 @@ class GUI (data: DataReader) : ApplicationFrame("Telemetry Fitter") {
     private var _chart : JFreeChart? = null
     private var _chartPanel: ChartPanel? = null
     private var _pointDataset : DefaultCategoryDataset? = null
-    private var _minimumValue : Double = 0.0
-    private var _maximumValue : Double = 0.0
+    private var _minimumValue : Double? = null
+    private var _maximumValue : Double? = null
+    private var _existingValues = HashMap<Int, Boolean>()
+
     init {
         this._pointDataset = this.createPointDataset(data)
         this._chart = ChartFactory.createLineChart("Telemetry Fitter", "RSSI", "Distance", this._pointDataset, PlotOrientation.VERTICAL, true, true, false)
@@ -25,26 +27,41 @@ class GUI (data: DataReader) : ApplicationFrame("Telemetry Fitter") {
     private fun createPointDataset(data: DataReader) : DefaultCategoryDataset {
         val dataset = DefaultCategoryDataset()
 
-        for (i in 0 until data.GetSize() step data.GetSize() / 100)
-        {
-            val inData = data.GetData(i)
-            if (inData.second < _minimumValue)
-                _minimumValue = inData.second
-            if (inData.second > _maximumValue)
-                _maximumValue = inData.second
-            dataset.addValue(inData.first, "Input RSSI", inData.second.toInt())
+        for (i in 0 until data.GetSize()) {
+            if (this._minimumValue == null || data.GetData(i).second < this._minimumValue!!)
+                this._minimumValue = data.GetData(i).second
+            if (this._maximumValue == null || data.GetData(i).second > this._maximumValue!!)
+                this._maximumValue = data.GetData(i).second
+        }
+
+        for (i in this._minimumValue!!.toInt() until this._maximumValue!!.toInt()) {
+            var sum: Double? = null
+            var totalSum = 0
+            for (j in 0 until data.GetSize()) {
+                if (data.GetData(j).second.toInt() == i) {
+                    if (sum == null)
+                        sum = 0.0
+                    sum += data.GetData(j).first
+                    totalSum++
+                }
+            }
+            if (sum != null) {
+                dataset.addValue(sum/totalSum, "Data RSSI", i)
+            }
+            this._existingValues[i] = sum != null
         }
 
         return dataset
     }
 
-    fun UpdateNewChart(b: Double, n: Double, TxPower: Double)
-    {
+    fun UpdateNewChart(b: Double, n: Double, TxPower: Double) {
         try {
             this._pointDataset?.removeRow("Best R^2")
         }
         catch (e : Exception) { }
-        for (i in this._maximumValue.toInt() downTo this._minimumValue.toInt())
-            this._pointDataset?.addValue(10.0.pow((TxPower - i - b)/(10 * n)), "Best R^2", i)
+        for (i in this._minimumValue!!.toInt() until this._maximumValue!!.toInt()) {
+            if (this._existingValues.containsKey(i) && this._existingValues[i] == true)
+                this._pointDataset?.addValue(10.0.pow((TxPower - i - b)/(10 * n)), "Best R^2", i)
+        }
     }
 }

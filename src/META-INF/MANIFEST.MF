@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Main-Class: eu.orioncansat.betelgeuse.Main
-Class-Path: jfreechart-1.5.3.jar kotlin-stdlib.jar kotlin-reflect.jar ko
- tlin-test.jar kotlin-stdlib-jdk7.jar kotlin-stdlib-jdk8.jar
-
