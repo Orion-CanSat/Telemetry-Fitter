@@ -15,7 +15,7 @@ class Train(data: DataReader, onPercentageRun: Int, functionToRun: (Int) -> Unit
     private var _rowsNumber : Int = 0
     private var _txPower : Double = 0.0
     private var _dataReader: DataReader? = null
-    private var _meanObservedValue : Double = 0.0
+    private var _averageObservedValue : Double = 0.0
 
     private var _onPercentageToRun : Int = 0
     private var _functionToRun : ((Int) -> Unit)? = null
@@ -45,7 +45,7 @@ class Train(data: DataReader, onPercentageRun: Int, functionToRun: (Int) -> Unit
         for (i in 0 until this._rowsNumber)
             sum += data.GetData(i).second
 
-        this._meanObservedValue = sum / this._rowsNumber
+        this._averageObservedValue = sum / this._rowsNumber
     }
 
     private fun getDistance(B: Double, N: Double, RSSI: Double) : Double {
@@ -59,7 +59,7 @@ class Train(data: DataReader, onPercentageRun: Int, functionToRun: (Int) -> Unit
         for (i in 0 until this._rowsNumber)
         {
             val data = this._dataReader!!.GetData(i)
-            totalSumOfSquares += (data.first - this._meanObservedValue).pow(2.0)
+            totalSumOfSquares += (data.first - this._averageObservedValue).pow(2.0)
             residualSumOfSquares += (data.first - getDistance(B, N, data.second)).pow(2.0)
         }
 
